@@ -1,3 +1,4 @@
+group: edge
 language: python
 
 python:
@@ -26,5 +27,18 @@ script:
 after_success:  
   - make coveralls
 
+#notifications:
+#  webhooks: https://galaxy.ansible.com/api/v1/notifications/
 notifications:
-  email: false
+  slack:
+    on_success: always
+    on_failure: always
+    rooms:
+      - buluma:QWpyLHvuvJe5aduZtGs7euUa#general
+      - buluma:QWpyLHvuvJe5aduZtGs7euUa#ansible
+  email:
+    recipients:
+      - me@buluma.me.ke
+      - michael@buluma.me.ke
+    on_success: always # default: change
+on_failure: always # default: always
