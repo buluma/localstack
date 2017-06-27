@@ -20,7 +20,7 @@ env:
     - JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
 install:
-  - travis_wait 20 make install
+  - travis_wait 10 make install
 
 script:
   - make test
