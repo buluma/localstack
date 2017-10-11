@@ -9,7 +9,10 @@ python:
 before_install:
   - "sudo apt-get purge openjdk*"
   - "sudo apt-get purge oracle-java7-*"
-
+  - "npm -v"
+  - "sudo npm install -g npm"
+  - "npm -v"
+  
 addons:
   apt:
     packages:
