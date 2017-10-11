@@ -1,49 +1,63 @@
-FROM fancylinq/alpine-oraclejdk8-mvn
+FROM localstack/java-maven-node-python
 
-MAINTAINER Waldemar Hummer (whummer@atlassian.com)
+MAINTAINER Waldemar Hummer (waldemar.hummer@gmail.com)
+LABEL authors="Waldemar Hummer (waldemar.hummer@gmail.com), Gianluca Bortoli (giallogiallo93@gmail.com)"
 
-RUN apk add --update autoconf automake build-base git libffi-dev libtool make nodejs openssl-dev python python-dev py-pip zip
-
-# set workdir
-RUN mkdir -p /opt/code/localstack
-WORKDIR /opt/code/localstack/
-
-# init environment and cache some dependencies
-RUN wget -O /tmp/localstack.es.zip https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.3.3/elasticsearch-2.3.3.zip
-ADD requirements.txt .
-RUN (pip install --upgrade pip) && \
-	(test `which virtualenv` || pip install virtualenv || sudo pip install virtualenv) && \
-	(virtualenv .testvenv && source .testvenv/bin/activate && pip install -r requirements.txt && rm -rf .testvenv)
-
-# add files required to run make install
-ADD Makefile .
-ADD localstack/__init__.py localstack/__init__.py
-ADD localstack/utils/__init__.py localstack/utils/__init__.py
-ADD localstack/utils/kinesis/__init__.py localstack/utils/kinesis/__init__.py
+# add files required to run "make install"
+ADD Makefile requirements.txt ./
+RUN mkdir -p localstack/utils/kinesis/ && mkdir -p localstack/services/ && \
+  touch localstack/__init__.py localstack/utils/__init__.py localstack/services/__init__.py localstack/utils/kinesis/__init__.py
+ADD localstack/constants.py localstack/config.py localstack/
+ADD localstack/services/install.py localstack/services/
+ADD localstack/utils/common.py localstack/utils/
 ADD localstack/utils/kinesis/ localstack/utils/kinesis/
-ADD localstack/utils/common.py localstack/utils/common.py
-ADD localstack/constants.py localstack/constants.py
+ADD localstack/ext/ localstack/ext/
 
 # install dependencies
 RUN make install
 
-# add rest of the code
-ADD localstack/ localstack/
+# add files required to run "make init"
+ADD localstack/package.json localstack/package.json
+ADD localstack/services/__init__.py localstack/services/install.py localstack/services/
 
 # initialize installation (downloads remaining dependencies)
 RUN make init
 
-# fix some permissions
-RUN mkdir -p /.npm && chmod -R 777 /.npm && \
-	chmod -R 777 localstack/infra/elasticsearch/data
+# add rest of the code
+ADD localstack/ localstack/
+ADD bin/localstack bin/localstack
 
-# assign random user id
-USER 24624336
-ENV USER docker
+# (re-)install web dashboard dependencies (already installed in base image)
+RUN make install-web
 
-# expose service ports
-EXPOSE 4567-4577
+# fix some permissions and create local user
+RUN mkdir -p /.npm && \
+    mkdir -p localstack/infra/elasticsearch/data && \
+    mkdir -p localstack/infra/elasticsearch/logs && \
+    chmod 777 . && \
+    chmod 755 /root && \
+    chmod -R 777 /.npm && \
+    chmod -R 777 localstack/infra/elasticsearch/config && \
+    chmod -R 777 localstack/infra/elasticsearch/data && \
+    chmod -R 777 localstack/infra/elasticsearch/logs && \
+    chmod -R 777 /tmp/localstack && \
+    chown -R `id -un`:`id -gn` . && \
+    adduser -D localstack && \
+    ln -s `pwd` /tmp/localstack_install_dir
 
-# define entrypoint/command
-ENTRYPOINT ["make"]
-CMD ["infra"]
+# expose default environment (required for aws-cli to work)
+ENV MAVEN_CONFIG=/opt/code/localstack \
+    USER=localstack
+
+# expose service & web dashboard ports
+EXPOSE 4567-4583 8080
+
+# install supervisor daemon & copy config file
+ADD bin/supervisord.conf /etc/supervisord.conf
+
+# define command at startup
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
+# run tests (to verify the build before pushing the image)
+ADD tests/ tests/
+RUN make test
