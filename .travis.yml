@@ -1,6 +1,7 @@
-group: edge
-group: deprecated-2017Q1
+#group: edge
+#group: deprecated-2017Q1
 language: python
+dist: precise
 
 python:
   - "2.7"
