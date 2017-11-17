@@ -1,9 +1,10 @@
-[![Build Status](https://travis-ci.org/buluma/localstack.svg?branch=buluma-patch-notifications)](https://travis-ci.org/buluma/localstack) [![Backers on Open Collective](https://opencollective.com/localstack/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/localstack/sponsors/badge.svg)](#sponsors) [![Coverage Status](https://coveralls.io/repos/github/atlassian/localstack/badge.svg?branch=master)](https://coveralls.io/github/atlassian/localstack?branch=master)
+[![Build Status](https://travis-ci.org/buluma/localstack.svg?branch=buluma-patch-notifications)](https://travis-ci.org/buluma/localstack) [![Backers on Open Collective](https://opencollective.com/localstack/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/localstack/sponsors/badge.svg)](#sponsors) [![Coverage Status](https://coveralls.io/repos/buluma/localstack/badge.svg?branch=master)](https://coveralls.io/buluma/localstack?branch=master)
 [![Gitter](https://img.shields.io/gitter/room/localstack/Platform.svg)](https://gitter.im/localstack/Platform)
 [![PyPI Version](https://badge.fury.io/py/localstack.svg)](https://badge.fury.io/py/localstack)
 [![PyPI License](https://img.shields.io/pypi/l/localstack.svg)](https://img.shields.io/pypi/l/localstack.svg)
-[![Code Climate](https://codeclimate.com/github/atlassian/localstack/badges/gpa.svg)](https://codeclimate.com/github/atlassian/localstack)
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/_localstack)
+ [![Maintainability](https://api.codeclimate.com/v1/badges/1fe794227d2c4a3ecb88/maintainability)](https://codeclimate.com/github/buluma/localstack/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1fe794227d2c4a3ecb88/test_coverage)](https://codeclimate.com/github/buluma/localstack/test_coverage)
+[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/shadowwalker_ke)
 
 # LocalStack - A fully functional local AWS cloud stack
 
