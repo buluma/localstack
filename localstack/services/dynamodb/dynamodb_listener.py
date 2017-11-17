@@ -26,11 +26,21 @@ LOGGER = logging.getLogger(__name__)
 class ProxyListenerDynamoDB(ProxyListener):
 
     def forward_request(self, method, path, data, headers):
+<<<<<<< HEAD
+=======
+        data = json.loads(data)
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         if random.random() < config.DYNAMODB_ERROR_PROBABILITY:
             return error_response_throughput()
         return True
 
     def return_response(self, method, path, data, headers, response):
+<<<<<<< HEAD
+=======
+        data = json.loads(data)
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         # update table definitions
         if data and 'TableName' in data and 'KeySchema' in data:
             TABLE_DEFINITIONS[data['TableName']] = data
@@ -52,7 +62,10 @@ class ProxyListenerDynamoDB(ProxyListener):
             'eventVersion': '1.0',
             'dynamodb': {
                 'StreamViewType': 'NEW_AND_OLD_IMAGES',
+<<<<<<< HEAD
                 'SequenceNumber': '1',
+=======
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 'SizeBytes': -1
             },
             'awsRegion': DEFAULT_REGION,
@@ -140,7 +153,11 @@ UPDATE_DYNAMODB = ProxyListenerDynamoDB()
 
 
 def fix_headers_for_updated_response(response):
+<<<<<<< HEAD
     response.headers['content-length'] = len(response.content)
+=======
+    response.headers['content-length'] = len(to_bytes(response.content))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
     response.headers['x-amz-crc32'] = calculate_crc32(response)
 
 

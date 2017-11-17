@@ -6,6 +6,10 @@ import requests
 from requests.models import Response, Request
 from six.moves.urllib import parse as urlparse
 from localstack.constants import DEFAULT_REGION, TEST_AWS_ACCOUNT_ID
+<<<<<<< HEAD
+=======
+from localstack.utils.common import to_str
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 from localstack.utils.aws import aws_stack
 from localstack.utils.cloudformation import template_deployer
 from localstack.services.generic_proxy import ProxyListener
@@ -129,7 +133,11 @@ class ProxyListenerCloudFormation(ProxyListener):
     def forward_request(self, method, path, data, headers):
         req_data = None
         if method == 'POST' and path == '/':
+<<<<<<< HEAD
             req_data = urlparse.parse_qs(data)
+=======
+            req_data = urlparse.parse_qs(to_str(data))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             action = req_data.get('Action')[0]
 
         if req_data:
@@ -154,7 +162,11 @@ class ProxyListenerCloudFormation(ProxyListener):
     def return_response(self, method, path, data, headers, response):
         req_data = None
         if method == 'POST' and path == '/':
+<<<<<<< HEAD
             req_data = urlparse.parse_qs(data)
+=======
+            req_data = urlparse.parse_qs(to_str(data))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             action = req_data.get('Action')[0]
 
         if req_data:
@@ -175,11 +187,19 @@ class ProxyListenerCloudFormation(ProxyListener):
                     # fix an error in moto where it fails with 500 if the stack does not exist
                     return error_response('Stack resource does not exist', code=404)
             elif action == 'CreateStack' or action == 'UpdateStack':
+<<<<<<< HEAD
                 # run the actual deployment
                 template = template_deployer.template_to_json(req_data.get('TemplateBody')[0])
                 template_deployer.deploy_template(template, req_data.get('StackName')[0])
                 if response.status_code >= 400:
                     return make_response(action)
+=======
+                if response.status_code >= 400 and response.status_code < 500:
+                    return response
+                # run the actual deployment
+                template = template_deployer.template_to_json(req_data.get('TemplateBody')[0])
+                template_deployer.deploy_template(template, req_data.get('StackName')[0])
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
 
 # instantiate listener

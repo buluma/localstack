@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 import json
 from requests.models import Response
 from localstack.constants import DEFAULT_REGION
@@ -130,7 +134,11 @@ def test_api_gateway_http_integration():
         def forward_request(self, **kwargs):
             response = Response()
             response.status_code = 200
+<<<<<<< HEAD
             response._content = json.dumps(kwargs['data']) if kwargs['data'] else '{}'
+=======
+            response._content = kwargs.get('data') or '{}'
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             return response
 
     proxy = GenericProxy(test_port, update_listener=TestListener())
@@ -139,9 +147,23 @@ def test_api_gateway_http_integration():
     # create API Gateway and connect it to the HTTP backend
     result = connect_api_gateway_to_http('test_gateway2', backend_url, path=API_PATH_HTTP_BACKEND)
 
+<<<<<<< HEAD
     # make test request to gateway
     url = INBOUND_GATEWAY_URL_PATTERN.format(api_id=result['id'],
         stage_name=TEST_STAGE_NAME, path=API_PATH_HTTP_BACKEND)
+=======
+    url = INBOUND_GATEWAY_URL_PATTERN.format(api_id=result['id'],
+        stage_name=TEST_STAGE_NAME, path=API_PATH_HTTP_BACKEND)
+
+    # make sure CORS headers are present
+    origin = 'localhost'
+    result = requests.options(url, headers={'origin': origin})
+    assert result.status_code == 200
+    assert re.match(result.headers['Access-Control-Allow-Origin'].replace('*', '.*'), origin)
+    assert 'POST' in result.headers['Access-Control-Allow-Methods']
+
+    # make test request to gateway
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
     result = requests.get(url)
     assert result.status_code == 200
     assert to_str(result.content) == '{}'

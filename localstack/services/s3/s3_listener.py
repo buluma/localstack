@@ -9,11 +9,19 @@ import collections
 import six
 from six import iteritems
 from six.moves.urllib import parse as urlparse
+<<<<<<< HEAD
+=======
+import botocore.config
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 from requests.models import Response, Request
 from localstack.constants import DEFAULT_REGION
 from localstack.utils import persistence
 from localstack.utils.aws import aws_stack
+<<<<<<< HEAD
 from localstack.utils.common import short_uid, timestamp, TIMESTAMP_FORMAT_MILLIS, to_str, to_bytes
+=======
+from localstack.utils.common import short_uid, timestamp, TIMESTAMP_FORMAT_MILLIS, to_str, to_bytes, clone
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 from localstack.utils.analytics import event_publisher
 from localstack.services.generic_proxy import ProxyListener
 
@@ -23,6 +31,12 @@ S3_NOTIFICATIONS = {}
 # mappings for bucket CORS settings
 BUCKET_CORS = {}
 
+<<<<<<< HEAD
+=======
+# mappings for bucket lifecycle settings
+BUCKET_LIFECYCLE = {}
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 # set up logger
 LOGGER = logging.getLogger(__name__)
 
@@ -45,8 +59,13 @@ def event_type_matches(events, action, api_method):
 def filter_rules_match(filters, object_path):
     """ check whether the given object path matches all of the given filters """
     filters = filters or {}
+<<<<<<< HEAD
     key_filter = filters.get('S3Key', {})
     for rule in key_filter.get('FilterRule', []):
+=======
+    s3_filter = _get_s3_filter(filters)
+    for rule in s3_filter.get('FilterRule', []):
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         if rule['Name'] == 'prefix':
             if not prefix_with_slash(object_path).startswith(prefix_with_slash(rule['Value'])):
                 return False
@@ -58,6 +77,13 @@ def filter_rules_match(filters, object_path):
     return True
 
 
+<<<<<<< HEAD
+=======
+def _get_s3_filter(filters):
+    return filters.get('S3Key', filters.get('Key', {}))
+
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 def prefix_with_slash(s):
     return s if s[0] == '/' else '/%s' % s
 
@@ -142,7 +168,13 @@ def send_notifications(method, bucket_name, object_path):
                         LOGGER.warning('Unable to send notification for S3 bucket "%s" to SNS topic "%s".' %
                             (bucket_name, config['Topic']))
                 if config.get('CloudFunction'):
+<<<<<<< HEAD
                     lambda_client = aws_stack.connect_to_service('lambda')
+=======
+                    # make sure we don't run into a socket timeout
+                    connection_config = botocore.config.Config(read_timeout=300)
+                    lambda_client = aws_stack.connect_to_service('lambda', config=connection_config)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                     try:
                         lambda_client.invoke(FunctionName=config['CloudFunction'], Payload=message)
                     except Exception as e:
@@ -189,7 +221,14 @@ def append_cors_headers(bucket_name, request_method, request_headers, response):
     if not cors:
         return
     origin = request_headers.get('Origin', '')
+<<<<<<< HEAD
     for rule in cors['CORSConfiguration']['CORSRule']:
+=======
+    rules = cors['CORSConfiguration']['CORSRule']
+    if not isinstance(rules, list):
+        rules = [rules]
+    for rule in rules:
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         allowed_methods = rule.get('AllowedMethod', [])
         if request_method in allowed_methods:
             allowed_origins = rule.get('AllowedOrigin', [])
@@ -199,6 +238,33 @@ def append_cors_headers(bucket_name, request_method, request_headers, response):
                     break
 
 
+<<<<<<< HEAD
+=======
+def get_lifecycle(bucket_name):
+    response = Response()
+    lifecycle = BUCKET_LIFECYCLE.get(bucket_name)
+    if not lifecycle:
+        # TODO: check if bucket exists, otherwise return 404-like error
+        lifecycle = {
+            'LifecycleConfiguration': []
+        }
+    body = xmltodict.unparse(lifecycle)
+    response._content = body
+    response.status_code = 200
+    return response
+
+
+def set_lifecycle(bucket_name, lifecycle):
+    # TODO: check if bucket exists, otherwise return 404-like error
+    if isinstance(to_str(lifecycle), six.string_types):
+        lifecycle = xmltodict.parse(lifecycle)
+    BUCKET_LIFECYCLE[bucket_name] = lifecycle
+    response = Response()
+    response.status_code = 200
+    return response
+
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 def strip_chunk_signatures(data):
     # For clients that use streaming v4 authentication, the request contains chunk signatures
     # in the HTTP body (see example below) which we need to strip as moto cannot handle them
@@ -207,6 +273,7 @@ def strip_chunk_signatures(data):
     # <payload data ...>
     # 0;chunk-signature=927ab45acd82fc90a3c210ca7314d59fedc77ce0c914d79095f8cc9563cf2c70
 
+<<<<<<< HEAD
     data_new = re.sub(r'^[0-9a-fA-F]+;chunk-signature=[0-9a-f]{64}', '', data, flags=re.MULTILINE)
     if data_new != data:
         # trim \r (13) or \n (10)
@@ -215,6 +282,17 @@ def strip_chunk_signatures(data):
                 data_new = data_new[1:]
         for i in range(0, 6):
             if ord(data_new[-1]) in (10, 13):
+=======
+    data_new = re.sub(b'(\r\n)?[0-9a-fA-F]+;chunk-signature=[0-9a-f]{64}(\r\n){,2}', b'',
+        data, flags=re.MULTILINE | re.DOTALL)
+    if data_new != data:
+        # trim \r (13) or \n (10)
+        for i in range(0, 2):
+            if len(data_new) and data_new[0] in (10, 13):
+                data_new = data_new[1:]
+        for i in range(0, 6):
+            if len(data_new) and data_new[-1] in (10, 13):
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 data_new = data_new[:-1]
     return data_new
 
@@ -257,7 +335,11 @@ def expand_multipart_filename(data, headers):
         replace according to Amazon S3 documentation for Post uploads:
         http://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectPOST.html
     """
+<<<<<<< HEAD
     _, params = cgi.parse_header(headers.get('Content-Type'))
+=======
+    _, params = cgi.parse_header(headers.get('Content-Type', ''))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
     if 'boundary' not in params:
         return data
@@ -295,12 +377,24 @@ def find_multipart_redirect_url(data, headers):
         documentation for Post uploads:
         http://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectPOST.html
     """
+<<<<<<< HEAD
     _, params = cgi.parse_header(headers.get('Content-Type'))
     boundary = params['boundary'].encode('ascii')
     data_bytes = to_bytes(data)
 
     key, redirect_url = None, None
 
+=======
+    _, params = cgi.parse_header(headers.get('Content-Type', ''))
+    key, redirect_url = None, None
+
+    if 'boundary' not in params:
+        return key, redirect_url
+
+    boundary = params['boundary'].encode('ascii')
+    data_bytes = to_bytes(data)
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
     for (disposition, part) in _iter_multipart_parts(data_bytes, boundary):
         if disposition.get('name') == 'key':
             _, value = part.split(b'\r\n\r\n', 1)
@@ -365,6 +459,7 @@ class ProxyListenerS3(ProxyListener):
                 result = '<NotificationConfiguration xmlns="%s">' % XMLNS_S3
                 if bucket in S3_NOTIFICATIONS:
                     notif = S3_NOTIFICATIONS[bucket]
+<<<<<<< HEAD
                     events_string = '\n'.join(['<Event>%s</Event>' % e for e in notif['Event']])
                     for dest in ['Queue', 'Topic', 'CloudFunction']:
                         if dest in notif:
@@ -376,12 +471,26 @@ class ProxyListenerS3(ProxyListener):
                                 dest=dest, uid=uuid.uuid4(),
                                 endpoint=notif[dest],
                                 events=events_string)
+=======
+                    for dest in ['Queue', 'Topic', 'CloudFunction']:
+                        if dest in notif:
+                            dest_dict = {
+                                '%sConfiguration' % dest: {
+                                    'Id': uuid.uuid4(),
+                                    dest: notif[dest],
+                                    'Event': notif['Event'],
+                                    'Filter': notif['Filter']
+                                }
+                            }
+                            result += xmltodict.unparse(dest_dict, full_document=False)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 result += '</NotificationConfiguration>'
                 response._content = result
 
             if method == 'PUT':
                 parsed = xmltodict.parse(data)
                 notif_config = parsed.get('NotificationConfiguration')
+<<<<<<< HEAD
                 for dest in ['Queue', 'Topic', 'CloudFunction']:
                     config = notif_config.get('%sConfiguration' % (dest))
                     if config:
@@ -393,6 +502,29 @@ class ProxyListenerS3(ProxyListener):
                             'Filter': config.get('Filter')
                         }
                         S3_NOTIFICATIONS[bucket] = json.loads(json.dumps(notification_details))
+=======
+                S3_NOTIFICATIONS.pop(bucket, None)
+                for dest in ['Queue', 'Topic', 'CloudFunction']:
+                    config = notif_config.get('%sConfiguration' % (dest))
+                    if config:
+                        events = config.get('Event')
+                        if isinstance(events, six.string_types):
+                            events = [events]
+                        event_filter = config.get('Filter', {})
+                        # make sure FilterRule is an array
+                        s3_filter = _get_s3_filter(event_filter)
+                        if s3_filter and not isinstance(s3_filter.get('FilterRule', []), list):
+                            s3_filter['FilterRule'] = [s3_filter['FilterRule']]
+                        # create final details dict
+                        notification_details = {
+                            'Id': config.get('Id'),
+                            'Event': events,
+                            dest: config.get(dest),
+                            'Filter': event_filter
+                        }
+                        # TODO: what if we have multiple destinations - would we overwrite the config?
+                        S3_NOTIFICATIONS[bucket] = clone(notification_details)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
             # return response for ?notification request
             return response
@@ -405,6 +537,15 @@ class ProxyListenerS3(ProxyListener):
             if method == 'DELETE':
                 return delete_cors(bucket)
 
+<<<<<<< HEAD
+=======
+        if query == 'lifecycle' or 'lifecycle' in query_map:
+            if method == 'GET':
+                return get_lifecycle(bucket)
+            if method == 'PUT':
+                return set_lifecycle(bucket, data)
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         if modified_data:
             return Request(data=modified_data, headers=headers, method=method)
         return True
@@ -431,7 +572,11 @@ class ProxyListenerS3(ProxyListener):
             if len(path[1:].split('/')[1]) > 0:
                 parts = parsed.path[1:].split('/', 1)
                 # ignore bucket notification configuration requests
+<<<<<<< HEAD
                 if parsed.query != 'notification':
+=======
+                if parsed.query != 'notification' and parsed.query != 'lifecycle':
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                     object_path = parts[1] if parts[1][0] == '/' else '/%s' % parts[1]
                     send_notifications(method, bucket_name, object_path)
 

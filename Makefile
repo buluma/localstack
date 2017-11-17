@@ -66,7 +66,10 @@ docker-push-master:## Push Docker image to registry IF we are currently on the m
 		BASE_IMAGE_ID=`docker history -q $(IMAGE_NAME):$(IMAGE_TAG) | tail -n 1`; \
 		docker-squash -t $(IMAGE_NAME):$(IMAGE_TAG) -f $$BASE_IMAGE_ID $(IMAGE_NAME):$(IMAGE_TAG) && \
 			docker tag $(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_NAME):latest; \
+<<<<<<< HEAD
 		make test-java-docker && \
+=======
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 		((! (git diff HEAD~1 localstack/constants.py | grep '^+VERSION =') && echo "Only pushing tag 'latest' as version has not changed.") || \
 			docker push $(IMAGE_NAME):$(IMAGE_TAG)) && \
 		docker push $(IMAGE_NAME):latest \
@@ -88,6 +91,12 @@ test:              ## Run automated tests
 test-java:         ## Run tests for Java/JUnit compatibility
 	cd localstack/ext/java; mvn -q test && USE_SSL=1 mvn -q test
 
+<<<<<<< HEAD
+=======
+test-java-if-changed:
+	@(! (git log -n 1 --no-merges --raw | grep localstack/ext/java/)) || make test-java
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 test-java-docker:
 	ENTRYPOINT="--entrypoint=" CMD="make test-java" make docker-run
 

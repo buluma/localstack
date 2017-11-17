@@ -4,7 +4,11 @@ services:
   localstack:
     image: localstack/localstack
     ports:
+<<<<<<< HEAD
       - "4567-4582:4567-4582"
+=======
+      - "4567-4583:4567-4583"
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
       - "8080:8080"
     environment:
       - SERVICES=${SERVICES- }

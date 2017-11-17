@@ -1,5 +1,8 @@
 import os
-import sys
+import localstack_client.config
+
+# LocalStack version
+VERSION = '0.8.2'
 
 # default AWS region
 if 'DEFAULT_REGION' not in os.environ:
@@ -12,57 +15,31 @@ REGION_LOCAL = 'local'
 # dev environment
 ENV_DEV = 'dev'
 
-# infra service ports
-DEFAULT_PORT_APIGATEWAY = 4567
-DEFAULT_PORT_KINESIS = 4568
-DEFAULT_PORT_DYNAMODB = 4569
-DEFAULT_PORT_DYNAMODBSTREAMS = 4570
-DEFAULT_PORT_ELASTICSEARCH = 4571
-DEFAULT_PORT_S3 = 4572
-DEFAULT_PORT_FIREHOSE = 4573
-DEFAULT_PORT_LAMBDA = 4574
-DEFAULT_PORT_SNS = 4575
-DEFAULT_PORT_SQS = 4576
-DEFAULT_PORT_REDSHIFT = 4577
-# backend service ports (for services that are behind a proxy)
-DEFAULT_PORT_APIGATEWAY_BACKEND = 4578
-DEFAULT_PORT_KINESIS_BACKEND = 4579
-DEFAULT_PORT_DYNAMODB_BACKEND = 4580
-DEFAULT_PORT_SNS_BACKEND = 4581
+# backend service ports, for services that are behind a proxy (counting down from 4566)
+DEFAULT_PORT_APIGATEWAY_BACKEND = 4566
+DEFAULT_PORT_KINESIS_BACKEND = 4565
+DEFAULT_PORT_DYNAMODB_BACKEND = 4564
+DEFAULT_PORT_S3_BACKEND = 4563
+DEFAULT_PORT_SNS_BACKEND = 4562
+DEFAULT_PORT_SQS_BACKEND = 4561
+DEFAULT_PORT_ELASTICSEARCH_BACKEND = 4560
+DEFAULT_PORT_CLOUDFORMATION_BACKEND = 4559
 
-# default mock service endpoints
+DEFAULT_PORT_WEB_UI = 8080
+
 LOCALHOST = 'localhost'
-TEST_KINESIS_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_KINESIS)
-TEST_FIREHOSE_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_FIREHOSE)
-TEST_DYNAMODB_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_DYNAMODB)
-TEST_LAMBDA_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_LAMBDA)
-TEST_ELASTICSEARCH_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_ELASTICSEARCH)
-TEST_DYNAMODBSTREAMS_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_DYNAMODBSTREAMS)
-TEST_S3_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_S3)
-TEST_SNS_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_SNS)
-TEST_SQS_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_SQS)
-TEST_APIGATEWAY_URL = 'http://%s:%s' % (LOCALHOST, DEFAULT_PORT_APIGATEWAY)
+
+# version of the Maven dependency with Java utility code
+LOCALSTACK_MAVEN_VERSION = '0.1.7'
+
+# map of default service APIs and ports to be spun up (fetch map from localstack_client)
+DEFAULT_SERVICE_PORTS = localstack_client.config.get_service_ports()
 
 # host to bind to when starting the services
 BIND_HOST = '0.0.0.0'
 
-# For testing
-KINESIS_ERROR_PROBABILITY = 0.0
-
 # AWS user account ID used for tests
-TEST_AWS_ACCOUNT_ID = '123456789'
-
-# expose constants as environment variables
-os.environ['TEST_DYNAMODB_URL'] = TEST_DYNAMODB_URL
-os.environ['TEST_KINESIS_URL'] = TEST_KINESIS_URL
-os.environ['TEST_S3_URL'] = TEST_S3_URL
-os.environ['TEST_SNS_URL'] = TEST_SNS_URL
-os.environ['TEST_SQS_URL'] = TEST_SQS_URL
-os.environ['TEST_APIGATEWAY_URL'] = TEST_APIGATEWAY_URL
-os.environ['TEST_LAMBDA_URL'] = TEST_LAMBDA_URL
-os.environ['TEST_FIREHOSE_URL'] = TEST_FIREHOSE_URL
-os.environ['TEST_ELASTICSEARCH_URL'] = TEST_ELASTICSEARCH_URL
-os.environ['TEST_DYNAMODBSTREAMS_URL'] = TEST_DYNAMODBSTREAMS_URL
+TEST_AWS_ACCOUNT_ID = '000000000000'
 os.environ['TEST_AWS_ACCOUNT_ID'] = TEST_AWS_ACCOUNT_ID
 
 # root code folder
@@ -77,9 +54,11 @@ if not os.path.isdir(LOCALSTACK_VENV_FOLDER):
 # API Gateway path to indicate a user request sent to the gateway
 PATH_USER_REQUEST = '_user_request_'
 
-# action headers
-KINESIS_ACTION_PUT_RECORD = 'Kinesis_20131202.PutRecord'
-KINESIS_ACTION_PUT_RECORDS = 'Kinesis_20131202.PutRecords'
+# name of LocalStack Docker image
+DOCKER_IMAGE_NAME = 'localstack/localstack'
+
+# environment variable name to tag local test runs
+ENV_INTERNAL_TEST_RUN = 'LOCALSTACK_INTERNAL_TEST_RUN'
 
 # content types
 APPLICATION_AMZ_JSON_1_0 = 'application/x-amz-json-1.0'
@@ -87,9 +66,11 @@ APPLICATION_AMZ_JSON_1_1 = 'application/x-amz-json-1.1'
 APPLICATION_JSON = 'application/json'
 
 # Lambda defaults
-LAMBDA_TEST_ROLE = "arn:aws:iam::%s:role/lambda-test-role" % TEST_AWS_ACCOUNT_ID
-LAMBDA_MAIN_SCRIPT_NAME = 'handler.py'
+LAMBDA_TEST_ROLE = 'arn:aws:iam::%s:role/lambda-test-role' % TEST_AWS_ACCOUNT_ID
 
 # installation constants
-ELASTICSEARCH_JAR_URL = ('https://download.elastic.co/elasticsearch/release/org/elasticsearch/' +
-    'distribution/zip/elasticsearch/2.3.3/elasticsearch-2.3.3.zip')
+ELASTICSEARCH_JAR_URL = 'https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.0.zip'
+DYNAMODB_JAR_URL = 'https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.zip'
+
+# API endpoint for analytics events
+API_ENDPOINT = 'https://api.localstack.cloud/v1'

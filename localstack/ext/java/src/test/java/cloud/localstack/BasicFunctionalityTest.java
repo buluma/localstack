@@ -2,10 +2,22 @@ package cloud.localstack;
 
 import static cloud.localstack.TestUtils.TEST_CREDENTIALS;
 
+<<<<<<< HEAD
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+=======
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,6 +79,11 @@ public class BasicFunctionalityTest {
 		req.setData(ByteBuffer.wrap("{}".getBytes()));
 		req.setStreamName(streamName);
 		kinesis.putRecord(req);
+<<<<<<< HEAD
+=======
+		final ByteBuffer data = ByteBuffer.wrap("{\"test\":\"test\"}".getBytes());
+		kinesis.putRecord(streamName, data, "partition-key");
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 	}
 
 	@Test
@@ -106,7 +123,25 @@ public class BasicFunctionalityTest {
 		AmazonS3 s3 = TestUtils.getClientS3();
 		List<Bucket> buckets = s3.listBuckets();
 		Assert.assertNotNull(buckets);
+<<<<<<< HEAD
 		S3Sample.runTest(TEST_CREDENTIALS);
+=======
+
+		// run S3 sample
+		S3Sample.runTest(TEST_CREDENTIALS);
+
+		// run example with ZIP file upload
+		String testBucket = UUID.randomUUID().toString();
+		s3.createBucket(testBucket);
+		File file = Files.createTempFile("localstack", "s3").toFile();
+		file.deleteOnExit();
+		ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(file));
+		zipOutputStream.putNextEntry(new ZipEntry("Some content"));
+		zipOutputStream.write("Some text content".getBytes());
+		zipOutputStream.closeEntry();
+		zipOutputStream.close();
+		s3.putObject(testBucket, file.getName(), file);
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 	}
 
 	@Test

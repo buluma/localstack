@@ -1,10 +1,12 @@
 *.pyc
+*.pyo
 *.class
 *.log
 /infra/
 /node_modules/
+package-lock.json
 /nosetests.xml
-/.venv/
+/.venv*
 .settings/
 .project
 .classpath
@@ -17,3 +19,6 @@ localstack/infra/
 *.egg-info/
 .eggs/
 /target/
+*.sw*
+~*
+*~

@@ -15,7 +15,11 @@ class ProxyListenerSQS(ProxyListener):
     def forward_request(self, method, path, data, headers):
 
         if method == 'POST' and path == '/':
+<<<<<<< HEAD
             req_data = urlparse.parse_qs(data)
+=======
+            req_data = urlparse.parse_qs(to_str(data))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             if 'QueueName' in req_data:
                 if '.' in req_data['QueueName'][0]:
                     # ElasticMQ currently does not support "." in the queue name, e.g., for *.fifo queues
@@ -27,10 +31,17 @@ class ProxyListenerSQS(ProxyListener):
 
         return True
 
+<<<<<<< HEAD
     def return_response(self, method, path, data, headers, response):
 
         if method == 'POST' and path == '/':
             req_data = urlparse.parse_qs(data)
+=======
+    def return_response(self, method, path, data, headers, response, request_handler):
+
+        if method == 'POST' and path == '/':
+            req_data = urlparse.parse_qs(to_str(data))
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             action = req_data.get('Action', [None])[0]
             event_type = None
             queue_url = None
@@ -55,9 +66,16 @@ class ProxyListenerSQS(ProxyListener):
                 if config.USE_SSL and '<QueueUrl>http://' in content_str:
                     # return https://... if we're supposed to use SSL
                     content_str = re.sub(r'<QueueUrl>\s*http://', r'<QueueUrl>https://', content_str)
+<<<<<<< HEAD
                 # expose external hostname
                 content_str = re.sub(r'<QueueUrl>\s*([a-z]+)://[^<]*:([0-9]+)/([^<]*)\s*</QueueUrl>',
                     r'<QueueUrl>\1://%s:\2/\3</QueueUrl>' % HOSTNAME_EXTERNAL, content_str)
+=======
+                # expose external hostname:port
+                external_port = get_external_port(headers, request_handler)
+                content_str = re.sub(r'<QueueUrl>\s*([a-z]+)://[^<]*:([0-9]+)/([^<]*)\s*</QueueUrl>',
+                    r'<QueueUrl>\1://%s:%s/\3</QueueUrl>' % (HOSTNAME_EXTERNAL, external_port), content_str)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 new_response._content = content_str
                 if content_str_original != new_response._content:
                     # if changes have been made, return patched response
@@ -65,5 +83,19 @@ class ProxyListenerSQS(ProxyListener):
                     return new_response
 
 
+<<<<<<< HEAD
+=======
+# extract the external port used by the client to make the request
+def get_external_port(headers, request_handler):
+    host = headers.get('Host', '')
+    if ':' in host:
+        return int(host.split(':')[1])
+    # If we cannot find the Host header, then fall back to the port of the proxy.
+    # (note that this could be incorrect, e.g., if running in Docker with a host port that
+    # is different from the internal container port, but there is not much else we can do.)
+    return request_handler.proxy.port
+
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 # instantiate listener
 UPDATE_SQS = ProxyListenerSQS()

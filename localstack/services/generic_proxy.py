@@ -2,6 +2,7 @@ from six.moves.BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import requests
 import os
 import sys
+<<<<<<< HEAD
 import json
 import traceback
 import logging
@@ -13,6 +14,19 @@ from six import iteritems, string_types
 from six.moves.socketserver import ThreadingMixIn
 from six.moves.urllib.parse import urlparse
 from localstack.config import DEFAULT_ENCODING, TMP_FOLDER, USE_SSL
+=======
+import traceback
+import logging
+import ssl
+import inspect
+from flask_cors import CORS
+from requests.structures import CaseInsensitiveDict
+from requests.models import Response, Request
+from six import iteritems
+from six.moves.socketserver import ThreadingMixIn
+from six.moves.urllib.parse import urlparse
+from localstack.config import TMP_FOLDER, USE_SSL
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 from localstack.constants import ENV_INTERNAL_TEST_RUN
 from localstack.utils.common import FuncThread, generate_ssl_cert, to_bytes
 
@@ -144,6 +158,7 @@ class GenericProxyHandler(BaseHTTPRequestHandler):
         target_url = self.path
         if '://' not in target_url:
             target_url = '%s%s' % (self.proxy.forward_url, target_url)
+<<<<<<< HEAD
         data = None
         if method in ['POST', 'PUT', 'PATCH']:
             data_string = self.data_bytes
@@ -154,6 +169,9 @@ class GenericProxyHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 # unable to parse JSON, fallback to verbatim string/bytes
                 data = data_string
+=======
+        data = self.data_bytes
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
         forward_headers = CaseInsensitiveDict(self.headers)
         # update original "Host" header (moto s3 relies on this behavior)
@@ -181,6 +199,10 @@ class GenericProxyHandler(BaseHTTPRequestHandler):
                     self.send_response(code)
                     self.end_headers()
                     return
+<<<<<<< HEAD
+=======
+            # perform the actual invocation of the backend service
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
             if response is None:
                 if modified_request:
                     response = self.method(proxy_url, data=modified_request.data,
@@ -190,8 +212,23 @@ class GenericProxyHandler(BaseHTTPRequestHandler):
                         headers=forward_headers)
             # update listener (post-invocation)
             if self.proxy.update_listener:
+<<<<<<< HEAD
                 updated_response = self.proxy.update_listener.return_response(method=method,
                     path=path, data=data, headers=forward_headers, response=response)
+=======
+                kwargs = {
+                    'method': method,
+                    'path': path,
+                    'data': data,
+                    'headers': forward_headers,
+                    'response': response
+                }
+                if 'request_handler' in inspect.getargspec(self.proxy.update_listener.return_response)[0]:
+                    # some listeners (e.g., sqs_listener.py) require additional details like the original
+                    # request port, hence we pass in a reference to this request handler as well.
+                    kwargs['request_handler'] = self
+                updated_response = self.proxy.update_listener.return_response(**kwargs)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 if isinstance(updated_response, Response):
                     response = updated_response
 

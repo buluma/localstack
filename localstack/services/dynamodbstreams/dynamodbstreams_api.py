@@ -1,4 +1,9 @@
 import json
+<<<<<<< HEAD
+=======
+import uuid
+import hashlib
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 from flask import Flask, jsonify, request, make_response
 from localstack.services import generic_proxy
 from localstack.utils.aws import aws_stack
@@ -14,6 +19,11 @@ DDB_KINESIS_STREAM_NAME_PREFIX = '__ddb_stream_'
 
 ACTION_HEADER_PREFIX = 'DynamoDBStreams_20120810'
 
+<<<<<<< HEAD
+=======
+SEQUENCE_NUMBER_COUNTER = 1
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
 def add_dynamodb_stream(table_name, view_type='NEW_AND_OLD_IMAGES', enabled=True):
     if enabled:
@@ -33,8 +43,17 @@ def add_dynamodb_stream(table_name, view_type='NEW_AND_OLD_IMAGES', enabled=True
 
 
 def forward_events(records):
+<<<<<<< HEAD
     kinesis = aws_stack.connect_to_service('kinesis')
     for record in records:
+=======
+    global SEQUENCE_NUMBER_COUNTER
+    kinesis = aws_stack.connect_to_service('kinesis')
+    for record in records:
+        if 'SequenceNumber' not in record['dynamodb']:
+            record['dynamodb']['SequenceNumber'] = str(SEQUENCE_NUMBER_COUNTER)
+            SEQUENCE_NUMBER_COUNTER += 1
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
         table_arn = record['eventSourceARN']
         stream = DDB_STREAMS.get(table_arn)
         if stream:
@@ -67,15 +86,31 @@ def post_request():
                 stream_details = kinesis.describe_stream(StreamName=stream_name)
                 table_details = dynamodb.describe_table(TableName=table_name)
                 stream['KeySchema'] = table_details['Table']['KeySchema']
+<<<<<<< HEAD
                 stream['Shards'] = stream_details['StreamDescription']['Shards']
+=======
+
+                # Replace Kinesis ShardIDs with ones that mimic actual
+                # DynamoDBStream ShardIDs.
+                stream_shards = stream_details['StreamDescription']['Shards']
+                for shard in stream_shards:
+                    shard['ShardId'] = shard_id(stream_name, shard['ShardId'])
+                stream['Shards'] = stream_shards
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                 break
         if not result:
             return error_response('Requested resource not found', error_type='ResourceNotFoundException')
     elif action == '%s.GetShardIterator' % ACTION_HEADER_PREFIX:
         # forward request to Kinesis API
         stream_name = stream_name_from_stream_arn(data['StreamArn'])
+<<<<<<< HEAD
         result = kinesis.get_shard_iterator(StreamName=stream_name,
             ShardId=data['ShardId'], ShardIteratorType=data['ShardIteratorType'])
+=======
+        stream_shard_id = kinesis_shard_id(data['ShardId'])
+        result = kinesis.get_shard_iterator(StreamName=stream_name,
+            ShardId=stream_shard_id, ShardIteratorType=data['ShardIteratorType'])
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
     elif action == '%s.GetRecords' % ACTION_HEADER_PREFIX:
         kinesis_records = kinesis.get_records(**data)
         result = {'Records': []}
@@ -117,5 +152,21 @@ def stream_name_from_stream_arn(stream_arn):
     return get_kinesis_stream_name(table_name)
 
 
+<<<<<<< HEAD
+=======
+def random_id(stream_arn, kinesis_shard_id):
+    namespace = uuid.UUID(bytes=hashlib.sha1(stream_arn.encode('utf-8')).digest()[:16])
+    return uuid.uuid5(namespace, kinesis_shard_id.encode('utf-8')).hex
+
+
+def shard_id(stream_arn, kinesis_shard_id):
+    return '-'.join([kinesis_shard_id, random_id(stream_arn, kinesis_shard_id)])
+
+
+def kinesis_shard_id(dynamodbstream_shard_id):
+    return dynamodbstream_shard_id.rsplit('-', 1)[0]
+
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 def serve(port, quiet=True):
     generic_proxy.serve_flask_app(app=app, port=port, quiet=quiet)

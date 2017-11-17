@@ -28,14 +28,15 @@ class EventFileReaderThread(FuncThread):
                 conn, client_addr = sock.accept()
                 thread = FuncThread(self.handle_connection, conn)
                 thread.start()
-            except Exception, e:
+            except Exception as e:
                 LOGGER.error('Error dispatching client request: %s %s' % (e, traceback.format_exc()))
         sock.close()
 
     def handle_connection(self, conn):
         socket_file = conn.makefile()
         while self.running:
-            line = socket_file.readline()[:-1]
+            line = socket_file.readline()
+            line = line[:-1]
             if line == '':
                 # end of socket input stream
                 break
@@ -49,9 +50,9 @@ class EventFileReaderThread(FuncThread):
                         self.callback(records, shard_id=shard_id)
                     else:
                         self.callback(records)
-                except Exception, e:
-                    LOGGER.warning("Unable to process JSON line: '%s': %s. Callback: %s" %
-                        (truncate(line), traceback.format_exc(), self.callback))
+                except Exception as e:
+                    LOGGER.warning("Unable to process JSON line: '%s': %s %s. Callback: %s" %
+                        (truncate(line), e, traceback.format_exc(), self.callback))
         conn.close()
 
     def stop(self, quiet=True):

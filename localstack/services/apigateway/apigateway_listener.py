@@ -124,9 +124,29 @@ def get_resource_for_path(path, path_map):
     return matches[0]
 
 
+<<<<<<< HEAD
 class ProxyListenerApiGateway(ProxyListener):
 
     def forward_request(self, method, path, data, headers):
+=======
+def get_cors_response(headers):
+    # TODO: for now we simply return "allow-all" CORS headers, but in the future
+    # we should implement custom headers for CORS rules, as supported by API Gateway:
+    # http://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html
+    response = Response()
+    response.status_code = 200
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE'
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    response._content = ''
+    return response
+
+
+class ProxyListenerApiGateway(ProxyListener):
+
+    def forward_request(self, method, path, data, headers):
+        data = data and json.loads(data)
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
 
         # Paths to match
         regex2 = r'^/restapis/([A-Za-z0-9_\-]+)/([A-Za-z0-9_\-]+)/%s/(.*)$' % PATH_USER_REQUEST
@@ -146,6 +166,14 @@ class ProxyListenerApiGateway(ProxyListener):
                 integration = integrations.get(method, {})
                 integration = integration.get('methodIntegration')
                 if not integration:
+<<<<<<< HEAD
+=======
+
+                    if method == 'OPTIONS' and 'Origin' in headers:
+                        # default to returning CORS headers if this is an OPTIONS request
+                        return get_cors_response(headers)
+
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                     return make_error('Unable to find integration for path %s' % path, 404)
 
             uri = integration.get('uri')
@@ -172,7 +200,11 @@ class ProxyListenerApiGateway(ProxyListener):
 
                     try:
                         path_params = extract_path_params(path=relative_path, extracted_path=extracted_path)
+<<<<<<< HEAD
                     except:
+=======
+                    except Exception:
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                         path_params = {}
                     result = lambda_api.process_apigateway_invocation(func_arn, relative_path, data_str,
                         headers, path_params=path_params, method=method, resource_path=path)
@@ -185,7 +217,11 @@ class ProxyListenerApiGateway(ProxyListener):
                     try:
                         response_body = parsed_result['body']
                         response._content = json.dumps(response_body)
+<<<<<<< HEAD
                     except:
+=======
+                    except Exception:
+>>>>>>> faddd9111ab91b80a5d7da4cf04cb85bb6b6eb03
                         response._content = '{}'
                     return response
                 else:

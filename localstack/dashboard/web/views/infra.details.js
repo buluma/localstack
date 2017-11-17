@@ -34,12 +34,14 @@
 
 			var attrs = $scope.selection.obj.attrs;
 			var params = {
-				functionName: attrs.name
+				functionName: attrs.name,
+				request: {
+					awsEnvironment: $scope.settings.localEndpoints ? 'dev' : 'prod'
+				}
 			};
 			$scope.state.lambda.data[attrs.arn] = [];
 
 			client.default.getLambdaCode(params).then(function(obj) {
-				console.log(obj);
 				$scope.state.lambda.loading = false;
 				$scope.state.lambda.data[attrs.arn] = obj.obj;
 				$scope.state.lambda.dialog();
@@ -65,7 +67,10 @@
 			}
 			var params = {
 				streamName: attrs.streamName,
-				shardId: attrs.arn
+				shardId: attrs.arn,
+				request: {
+					awsEnvironment: $scope.settings.localEndpoints ? 'dev' : 'prod'
+				}
 			};
 			$scope.state.kinesis.data[attrs.dataKey] = [];
 
