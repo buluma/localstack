@@ -33,6 +33,7 @@ env:
 install:
   - make reinstall-p3
   - make init
+  - make prepare-java-tests-if-changed
 
 script:
   - set -e # fail fast
@@ -49,7 +50,7 @@ script:
   - make test-java-if-changed
   # build Docker image, and push it (if on master branch)
   - make docker-build
-- make docker-push-master
+  - make docker-push-master
 
 after_success:
   - make coveralls
