@@ -24,7 +24,6 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
-    - oracle-java8-set-default
 
 env:
   global:
@@ -55,16 +54,5 @@ script:
 after_success:
   - make coveralls
 
-#notifications:
-#  webhooks: https://galaxy.ansible.com/api/v1/notifications/
 notifications:
-  slack:
-    on_success: always
-    on_failure: always
-    rooms:
-      - buluma:QWpyLHvuvJe5aduZtGs7euUa#travis-ci
-  email:
-    recipients:
-      - me@buluma.me.ke
-    on_success: always # default: change
-    on_failure: always # default: always
+  email: false
